@@ -43,8 +43,8 @@ export default async function HomePage() {
     }
   });
 
-  const featuredSingle = latestPosts.find((p) => p.category === "SINGLE") || latestPosts[0];
-  const otherPosts = latestPosts.filter((p) => p.id !== featuredSingle?.id).slice(0, 3);
+  const featuredSingle = latestPosts.find((p: any) => p.category === "SINGLE") || latestPosts[0];
+  const otherPosts = latestPosts.filter((p: any) => p.id !== featuredSingle?.id).slice(0, 3);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-20">
@@ -394,7 +394,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {otherPosts.map((post) => (
+            {otherPosts.map((post: any) => (
               <PostCard key={post.id} post={post} />
             ))}
           </div>

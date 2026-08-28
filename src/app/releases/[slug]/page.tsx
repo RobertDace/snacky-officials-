@@ -212,7 +212,7 @@ export default async function SingleReleasePage({
 
         <CommentSection
           postId={post.id}
-          initialComments={post.comments.map((c) => ({
+          initialComments={post.comments.map((c: any) => ({
             id: c.id,
             content: c.content,
             createdAt: c.createdAt.toISOString(),
