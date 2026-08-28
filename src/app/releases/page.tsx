@@ -19,32 +19,42 @@ export default async function ReleasesPage({
 }) {
   const { category, search } = await searchParams;
 
-  const where: any = { published: true };
+  let posts: any[] = [];
+  try {
+    const where: any = { published: true };
 
-  if (category && category !== "ALL") {
-    where.category = category;
-  }
+    if (category && category !== "ALL") {
+      where.category = category;
+    }
 
-  if (search) {
-    where.OR = [
-      { title: { contains: search } },
-      { summary: { contains: search } },
-      { content: { contains: search } },
-    ];
-  }
+    if (search) {
+      where.OR = [
+        { title: { contains: search } },
+        { summary: { contains: search } },
+        { content: { contains: search } },
+      ];
+    }
 
-  const posts = await prisma.post.findMany({
-    where,
-    orderBy: [
-      { featured: "desc" },
-      { createdAt: "desc" },
-    ],
-    include: {
-      _count: {
-        select: { comments: true },
+    posts = await prisma.post.findMany({
+      where,
+      orderBy: [
+        { featured: "desc" },
+        { createdAt: "desc" },
+      ],
+      include: {
+        _count: {
+          select: { comments: true },
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("Prisma error in ReleasesPage, using fallback data:", error);
+  }
+
+  if (!posts || posts.length === 0) {
+    const { getFallbackPosts } = await import("@/lib/fallbackData");
+    posts = getFallbackPosts(category, search);
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-10">

@@ -26,22 +26,33 @@ import {
   Sparkles
 } from "lucide-react";
 
+import { FALLBACK_POSTS } from "@/lib/fallbackData";
+
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const latestPosts = await prisma.post.findMany({
-    where: { published: true },
-    orderBy: [
-      { featured: "desc" },
-      { createdAt: "desc" }
-    ],
-    take: 4,
-    include: {
-      _count: {
-        select: { comments: true }
+  let latestPosts: any[] = [];
+  try {
+    latestPosts = await prisma.post.findMany({
+      where: { published: true },
+      orderBy: [
+        { featured: "desc" },
+        { createdAt: "desc" }
+      ],
+      take: 4,
+      include: {
+        _count: {
+          select: { comments: true }
+        }
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error("Prisma error in HomePage, using fallback data:", error);
+  }
+
+  if (!latestPosts || latestPosts.length === 0) {
+    latestPosts = FALLBACK_POSTS;
+  }
 
   const featuredSingle = latestPosts.find((p: any) => p.category === "SINGLE") || latestPosts[0];
   const otherPosts = latestPosts.filter((p: any) => p.id !== featuredSingle?.id).slice(0, 3);

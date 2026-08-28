@@ -22,11 +22,21 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await prisma.post.findFirst({
-    where: {
-      OR: [{ slug }, { id: slug }],
-    },
-  });
+  let post: any = null;
+  try {
+    post = await prisma.post.findFirst({
+      where: {
+        OR: [{ slug }, { id: slug }],
+      },
+    });
+  } catch (err) {
+    console.error("Prisma error in generateMetadata:", err);
+  }
+
+  if (!post) {
+    const { getFallbackPostBySlug } = await import("@/lib/fallbackData");
+    post = getFallbackPostBySlug(slug);
+  }
 
   if (!post) return { title: "Post Not Found | Snacky Official" };
 
@@ -43,27 +53,37 @@ export default async function SingleReleasePage({
 }) {
   const { slug } = await params;
 
-  const post = await prisma.post.findFirst({
-    where: {
-      OR: [{ slug }, { id: slug }],
-      published: true,
-    },
-    include: {
-      comments: {
-        orderBy: { createdAt: "desc" },
-        include: {
-          user: {
-            select: {
-              id: true,
-              username: true,
-              avatarUrl: true,
-              role: true,
+  let post: any = null;
+  try {
+    post = await prisma.post.findFirst({
+      where: {
+        OR: [{ slug }, { id: slug }],
+        published: true,
+      },
+      include: {
+        comments: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                avatarUrl: true,
+                role: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("Prisma error in SingleReleasePage, using fallback data:", error);
+  }
+
+  if (!post) {
+    const { getFallbackPostBySlug } = await import("@/lib/fallbackData");
+    post = getFallbackPostBySlug(slug);
+  }
 
   if (!post) {
     notFound();

@@ -54,8 +54,12 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ posts });
   } catch (error: any) {
-    console.error("GET posts error:", error);
-    return NextResponse.json({ error: "Failed to fetch posts." }, { status: 500 });
+    console.error("GET posts error, returning fallback:", error);
+    const { getFallbackPosts } = await import("@/lib/fallbackData");
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get("category") || undefined;
+    const search = searchParams.get("search") || undefined;
+    return NextResponse.json({ posts: getFallbackPosts(category, search) });
   }
 }
 
